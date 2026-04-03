@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Any eBook Reader & Annotater",
+  "version": "1.0.0",
+  "description": "Read DOCX, PDF, EPUB, MOBI, and AZW3 eBooks with highlighting and note-taking.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png",
+    "256": "icons/icon-256.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "Any eBook Reader & Annotater",
+    "default_popup": "popup/popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "downloads",
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["lib/*", "reader/*", "icons/*"],
+      "matches": ["<all_urls>"],
+      "extension_ids": []
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self' blob: data:; script-src 'self'; style-src 'self' blob: 'unsafe-inline'; img-src 'self' blob: data:; frame-src blob: data:; object-src 'self'"
+  }
+}
