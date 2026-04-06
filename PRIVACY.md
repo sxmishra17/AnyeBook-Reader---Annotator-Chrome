@@ -31,10 +31,9 @@ The extension requests the following browser permissions, used solely for its co
 
 | Permission | Purpose |
 |---|---|
-| **activeTab / tabs** | Used only to capture screenshots for the snapshot/annotation feature |
+| **activeTab / tabs** | Used only to capture screenshots for the snapshot/annotation feature and to open the reader in a new tab |
 | **storage** | Used to save your notes and preferences locally in your browser |
 | **downloads** | Used to export your notes as DOCX, PDF, or TXT files to your device |
-| **host_permissions** | Required by Chrome for the tab screenshot API used in the snapshot feature. No web page content is accessed or collected. |
 
 ## 5. Third-Party Services
 
