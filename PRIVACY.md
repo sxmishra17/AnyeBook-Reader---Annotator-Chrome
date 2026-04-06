@@ -1,4 +1,4 @@
-# Privacy Policy — Any eBook Reader & Annotator
+# Privacy Policy — AnyeBook Reader & Annotator
 
 **Chrome Extension**
 

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Any eBook Reader & Annotator",
+  "name": "AnyeBook Reader & Annotator",
   "version": "1.0.0",
   "description": "Read DOCX, PDF, EPUB, MOBI, and AZW3 eBooks with highlighting and note-taking.",
   "icons": {
@@ -16,7 +16,7 @@
       "48": "icons/icon-48.png",
       "128": "icons/icon-128.png"
     },
-    "default_title": "Any eBook Reader & Annotator",
+    "default_title": "AnyeBook Reader & Annotator",
     "default_popup": "popup/popup.html"
   },
   "permissions": [
