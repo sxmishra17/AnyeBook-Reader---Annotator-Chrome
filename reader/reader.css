@@ -870,6 +870,33 @@ mark.ebook-highlight.highlight-disabled {
   animation: fadeIn 0.15s ease;
 }
 
+/* The notes context menu has multiple items — use regular rounded rect
+   instead of the pill shape used by the single-button highlight menu */
+#notes-context-menu {
+  border-radius: var(--radius);
+  padding: 4px;
+}
+
+#notes-context-menu .context-menu-item {
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  box-shadow: none;
+  justify-content: flex-start;
+}
+
+#notes-context-menu .context-menu-item:hover {
+  background: var(--bg-surface);
+}
+
+#notes-context-menu .context-menu-danger {
+  color: var(--danger);
+}
+
+#notes-context-menu .context-menu-danger:hover {
+  background: rgba(255, 77, 106, 0.1);
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }

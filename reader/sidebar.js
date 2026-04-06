@@ -514,8 +514,8 @@ const Sidebar = (() => {
     }
   });
 
-  // Standard buttons
-  btnNotes.addEventListener('click', toggle);
+  // Note: btnNotes click is handled in reader.js which calls Sidebar.open()/close()
+  // — do NOT add a second listener here or the sidebar will double-toggle.
   btnClearNotes.addEventListener('click', clearAll);
 
   return {

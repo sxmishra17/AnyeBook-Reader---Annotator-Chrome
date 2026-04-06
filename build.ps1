@@ -17,7 +17,7 @@ if (-not (Test-Path $ArtifactsDir)) {
     New-Item -ItemType Directory -Path $ArtifactsDir | Out-Null
 }
 
-$zipName = "any_ebook_reader_annotater-1.0.0.zip"
+$zipName = "any_ebook_reader_annotator-1.0.0.zip"
 $zipPath = Join-Path $ArtifactsDir $zipName
 
 # Remove old build

@@ -159,13 +159,12 @@ const Snapshot = (() => {
     const pdfContainer = document.getElementById('pdf-container');
     if (pdfContainer && pdfContainer.style.display !== 'none') {
       capturePDFRegion(pdfContainer, x, y, w, h, page);
-      return;
+    } else {
+      // Strategy 2: EPUB/MOBI and DOCX — use captureVisibleTab directly.
+      // Extension pages have access to chrome.tabs API, so we call it
+      // directly instead of routing through the background service worker.
+      captureViaTab(x, y, w, h, page);
     }
-
-    // Strategy 2: EPUB/MOBI and DOCX — use captureVisibleTab directly.
-    // Extension pages have access to chrome.tabs API, so we call it
-    // directly instead of routing through the background service worker.
-    captureViaTab(x, y, w, h, page);
   }
 
   /**
@@ -199,12 +198,14 @@ const Snapshot = (() => {
           0, 0, w, h
         );
         Sidebar.addImageNote(canvas.toDataURL('image/png'), page);
+        // Free GPU-backed canvas resources immediately
+        canvas.width = 0; canvas.height = 0;
       };
-      img.onerror = () => fallbackCapture(null, w, h, page);
+      img.onerror = () => fallbackCapture(w, h, page);
       img.src = dataUrl;
     } catch (err) {
       console.warn('captureViaTab failed:', err);
-      fallbackCapture(null, w, h, page);
+      fallbackCapture(w, h, page);
     }
   }
 
@@ -259,30 +260,34 @@ const Snapshot = (() => {
     } else {
       showToast('Could not capture — no content in selected area');
     }
+    // Free GPU-backed canvas resources immediately
+    captureCanvas.width = 0; captureCanvas.height = 0;
   }
 
   /**
    * Fallback: Create a placeholder image when HTML capture fails
    */
-  function fallbackCapture(ctx, w, h, page) {
+  function fallbackCapture(w, h, page) {
     const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
-    const fallbackCtx = ctx || canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
 
-    fallbackCtx.fillStyle = '#1c1c30';
-    fallbackCtx.fillRect(0, 0, w, h);
-    fallbackCtx.strokeStyle = '#667eea';
-    fallbackCtx.lineWidth = 2;
-    fallbackCtx.strokeRect(4, 4, w - 8, h - 8);
-    fallbackCtx.fillStyle = '#667eea';
-    fallbackCtx.font = '14px Inter, sans-serif';
-    fallbackCtx.textAlign = 'center';
-    fallbackCtx.fillText(`Snapshot from Page ${page}`, w / 2, h / 2);
-    fallbackCtx.fillText(`${w}×${h}px`, w / 2, h / 2 + 20);
+    ctx.fillStyle = '#1c1c30';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#667eea';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(4, 4, w - 8, h - 8);
+    ctx.fillStyle = '#667eea';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Snapshot from Page ${page}`, w / 2, h / 2);
+    ctx.fillText(`${w}×${h}px`, w / 2, h / 2 + 20);
 
-    const dataUrl = (ctx ? ctx.canvas : canvas).toDataURL('image/png');
+    const dataUrl = canvas.toDataURL('image/png');
     Sidebar.addImageNote(dataUrl, page);
+    // Free GPU-backed canvas resources immediately
+    canvas.width = 0; canvas.height = 0;
   }
 
   function toggle() {

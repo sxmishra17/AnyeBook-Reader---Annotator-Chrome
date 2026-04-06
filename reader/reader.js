@@ -16,6 +16,41 @@ let pdfScale = 1.5;
 
 // Foliate state
 let foliateView = null;
+let scrollController = null;
+
+/**
+ * Clean up resources from the previous book before loading a new one.
+ * Prevents memory leaks from stacked listeners, retained PDF docs, etc.
+ */
+function cleanupPreviousBook() {
+  // Abort all per-book event listeners (scroll, wheel, keydown, dblclick)
+  if (scrollController) {
+    scrollController.abort();
+    scrollController = null;
+  }
+  // Destroy PDF.js document to free typed arrays and worker caches
+  if (pdfDoc) {
+    pdfDoc.destroy();
+    pdfDoc = null;
+  }
+  // Disconnect IntersectionObserver for lazy PDF page rendering
+  if (pdfPageObserver) {
+    pdfPageObserver.disconnect();
+    pdfPageObserver = null;
+  }
+  // Clean up foliate view (EPUB/MOBI)
+  if (foliateView) {
+    try { foliateView.close?.(); } catch (_) { /* ignore */ }
+    foliateView = null;
+  }
+  // Clear all format containers to free DOM nodes and canvas backing stores
+  const pdfC = document.getElementById('pdf-container');
+  const folC = document.getElementById('foliate-container');
+  const docC = document.getElementById('docx-container');
+  pdfC.innerHTML = '';  pdfC.style.display = 'none';
+  folC.innerHTML = '';  folC.style.display = 'none';
+  docC.innerHTML = '';  docC.style.display = 'none';
+}
 
 function isFoliateScrolledMode() {
   return foliateView?.renderer?.getAttribute('flow') === 'scrolled';
@@ -94,6 +129,10 @@ fileInput.addEventListener('change', async (e) => {
   }
 
   updateReaderLayoutMode();
+
+  // Clean up previous book's resources before loading a new one
+  cleanupPreviousBook();
+  scrollController = new AbortController();
 
   // Show loading, hide welcome
   welcomeScreen.style.display = 'none';
@@ -236,7 +275,7 @@ async function loadPDF(file) {
         break;
       }
     }
-  });
+  }, { signal: scrollController.signal });
 
   // Setup image capture for PDF — click on canvas
   container.addEventListener('dblclick', (e) => {
@@ -250,7 +289,7 @@ async function loadPDF(file) {
     // Capture the whole page as an image
     const dataUrl = canvas.toDataURL('image/png');
     Sidebar.addImageNote(dataUrl, pg);
-  });
+  }, { signal: scrollController.signal });
 }
 
 /**
@@ -538,7 +577,7 @@ async function loadFoliate(file, format) {
       } else if (e.deltaY < 0 || e.deltaX < 0) {
         foliateView.goLeft();
       }
-    }, { passive: false });
+    }, { passive: false, signal: scrollController.signal });
 
     // Outer keyboard navigation (when focus is outside the iframe)
     document.addEventListener('keydown', (e) => {
@@ -551,7 +590,7 @@ async function loadFoliate(file, format) {
         e.preventDefault();
         foliateView.goLeft();
       }
-    });
+    }, { signal: scrollController.signal });
 
     // Force light color-scheme in each EPUB section iframe so the browser
     // doesn't apply dark-mode defaults (dark bg + light text) when the
@@ -634,7 +673,7 @@ async function loadDocx(file) {
     const scrollFraction = readerArea.scrollTop / (readerArea.scrollHeight - readerArea.clientHeight);
     currentPage = Math.max(1, Math.ceil(scrollFraction * totalPages));
     updatePageInfo();
-  });
+  }, { signal: scrollController.signal });
 }
 
 /**
@@ -733,17 +772,8 @@ saveModal.addEventListener('click', (e) => {
   }
 });
 
-// ─── Keyboard Navigation ───────────────────────────────────
-document.addEventListener('keydown', (e) => {
-  if (currentFormat === 'pdf') {
-    // PDF: scroll-based, so keyboard just scrolls
-    return;
-  }
-  if (foliateView) {
-    if (e.key === 'ArrowRight') foliateView.next?.();
-    if (e.key === 'ArrowLeft') foliateView.prev?.();
-  }
-});
+// Keyboard navigation for EPUB/MOBI is handled inside loadFoliate()
+// via a per-book listener with AbortController cleanup.
 
 // ─── Navigate To Page (called by sidebar "Show in Book") ────
 function navigateToPage(page) {
@@ -758,7 +788,6 @@ function navigateToPage(page) {
     const container = document.getElementById('pdf-container');
     const wrapper = container.querySelector(`.pdf-page-wrapper[data-page="${pageNum}"]`);
     if (wrapper) {
-      const readerArea = document.getElementById('reader-area');
       wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
       // Flash the page border briefly
       wrapper.style.outline = '3px solid var(--accent)';
@@ -794,7 +823,6 @@ function navigateToPage(page) {
 
   } else if (currentFormat === 'docx') {
     // DOCX: scroll to estimated position
-    const readerArea = document.getElementById('reader-area');
     const scrollHeight = readerArea.scrollHeight - readerArea.clientHeight;
     const fraction = Math.max(0, (pageNum - 1) / Math.max(totalPages - 1, 1));
     const scrollTarget = fraction * scrollHeight;

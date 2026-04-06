@@ -23,8 +23,26 @@ const Exporter = (() => {
         url: url,
         filename: filename,
         saveAs: true
-      }, () => {
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }, (downloadId) => {
+        if (!downloadId) {
+          // Download failed to start — revoke immediately
+          URL.revokeObjectURL(url);
+          return;
+        }
+        // Revoke when the download completes or is interrupted
+        const listener = (delta) => {
+          if (delta.id !== downloadId) return;
+          if (delta.state?.current === 'complete' || delta.state?.current === 'interrupted') {
+            chrome.downloads.onChanged.removeListener(listener);
+            URL.revokeObjectURL(url);
+          }
+        };
+        chrome.downloads.onChanged.addListener(listener);
+        // Safety fallback: revoke after 5 minutes regardless
+        setTimeout(() => {
+          chrome.downloads.onChanged.removeListener(listener);
+          URL.revokeObjectURL(url);
+        }, 300000);
       });
     } else {
       // Fallback: anchor click
