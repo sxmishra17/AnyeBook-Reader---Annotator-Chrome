@@ -28,6 +28,9 @@
   "background": {
     "service_worker": "background.js"
   },
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
   "web_accessible_resources": [
     {
       "resources": ["lib/*", "reader/*", "icons/*"],

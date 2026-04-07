@@ -290,10 +290,22 @@ const Snapshot = (() => {
     canvas.width = 0; canvas.height = 0;
   }
 
-  function toggle() {
+  async function toggle() {
     if (active) {
       deactivate();
     } else {
+      // captureVisibleTab (used for EPUB/MOBI/DOCX snapshots) requires host
+      // permission. Request it here while we still have the user gesture context.
+      try {
+        const has = await chrome.permissions.contains({ origins: ['<all_urls>'] });
+        if (!has) {
+          const granted = await chrome.permissions.request({ origins: ['<all_urls>'] });
+          if (!granted) {
+            showToast('Screen capture permission is needed for snapshots');
+            return;
+          }
+        }
+      } catch (_) { /* permissions API unavailable — proceed anyway */ }
       activate();
     }
   }
