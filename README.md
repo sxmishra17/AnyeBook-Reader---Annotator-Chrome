@@ -93,4 +93,4 @@ Search **"AnyeBook Reader & Annotator"** on the [Chrome Web Store](https://chrom
 
 ## License
 
-All Rights Reserved — free to use, modify, and distribute.
+All Rights Reserved.
