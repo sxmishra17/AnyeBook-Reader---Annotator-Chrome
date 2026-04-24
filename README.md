@@ -94,3 +94,7 @@ Search **"AnyeBook Reader & Annotator"** on the [Chrome Web Store](https://chrom
 ## License
 
 All Rights Reserved.
+
+---
+
+Developed by **Satish Mishra**, **Yuvatech Solutions USA, LLC**
